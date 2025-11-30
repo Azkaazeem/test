@@ -518,146 +518,146 @@ lBtn && lBtn.addEventListener("click", login);
 
 // DASHBOARD FUNCTIONALITY
 
-/* ============================
-   Local Storage Helper Functions 
-   ============================ */
-function getQuestions() {
-  return JSON.parse(localStorage.getItem("surveyQuestions")) || [];
-}
+// --- 1. DOM ELEMENTS ---
+const questionForm = document.getElementById('question-form');
+const questionTypeSelect = document.getElementById('question-type');
+const optionsSection = document.getElementById('options-section');
+const optionsList = document.getElementById('options-list');
+const addOptionBtn = document.getElementById('add-opt-btn');
 
-function saveQuestions(data) {
-  localStorage.setItem("surveyQuestions", JSON.stringify(data));
-}
-
-/* ============================
-   Add Question Functionality
-   ============================ */
-const addForm = document.getElementById('addForm');
-
-addForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const title = document.getElementById('qTitle').value;
-    const type = document.getElementById('qType').value;
-    const optA = document.getElementById('optA').value;
-    const optB = document.getElementById('optB').value;
-    const optC = document.getElementById('optC').value;
-    const optD = document.getElementById('optD').value;
-    const failMsg = document.getElementById('failMsg').value;
-
-    // Insert into Supabase
-    const { data, error } = await supaBase
-        .from('SurveyQuestions')
-        .insert([
-            {
-                title: title,
-                type: type,
-                option_a: optA,
-                option_b: optB,
-                option_c: optC,
-                option_d: optD,
-                fail_message: failMsg
-            }
-        ]);
-
-    if (error) {
-        console.log(error);
-        Swal.fire('Error!', error.message, 'error');
+// --- 2. QUESTION TYPE CHANGE ---
+questionTypeSelect.addEventListener('change', (e) => {
+    const type = e.target.value;
+    if (type === 'Data') {
+        optionsSection.style.display = 'none';
     } else {
-        Swal.fire('Success!', 'Question added!', 'success');
-        addForm.reset(); // form clear
+        optionsSection.style.display = 'block';
     }
 });
 
-
-/* ============================
-   Display Questions in Table
-   ============================ */
-function displayQuestions() {
-  let table = document.getElementById("questionsTable");
-  let questions = getQuestions();
-
-  table.innerHTML = "";
-
-  questions.forEach((q, i) => {
-    table.innerHTML += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${q.title}</td>
-        <td>${q.type.toUpperCase()}</td>
-        <td>${q.type === "mcq" ? q.options.a : "-"}</td>
-        <td>${q.failMsg || "-"}</td>
-        <td>
-          <button onclick="deleteQuestion(${q.id})" class="btn btn-danger btn-sm">Delete</button>
-        </td>
-      </tr>
+// --- 3. ADD OPTION FUNCTION ---
+addOptionBtn.addEventListener('click', () => {
+    const newRow = document.createElement('div');
+    newRow.className = 'input-group mb-2 option-row';
+    
+    // CHANGE: Neche input se 'required' hata diya hai
+    newRow.innerHTML = `
+        <div class="input-group-text">
+            <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
+        </div>
+        <input type="text" class="form-control" placeholder="New Option"> <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
     `;
-  });
-}
+    optionsList.appendChild(newRow);
+});
 
-displayQuestions();
+// ... (Beech ka code same rahega) ...
 
-/* ============================
-   Delete Question
-   ============================ */
-function deleteQuestion(id) {
-  let all = getQuestions();
-  let updated = all.filter(q => q.id !== id);
+// --- Form Reset Logic (Submit k end mein) ---
+// Yahan bhi 'required' hata den
+optionsList.innerHTML = `
+        <div class="input-group mb-2 option-row">
+        <div class="input-group-text">
+            <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
+        </div>
+        <input type="text" class="form-control" placeholder="Option 1"> <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
+    </div>
+`;
 
-  saveQuestions(updated);
-  displayQuestions();
-}
+// --- 4. REMOVE OPTION ---
+optionsList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-option-btn')) {
+        const row = e.target.closest('.option-row');
+        if (optionsList.children.length > 1) {
+            row.remove();
+        } else {
+            alert("At least one option is required!");
+        }
+    }
+});
 
+// --- 5. FORM SUBMISSION (ERROR FIXED HERE) ---
+questionForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
+    // --- A. DATA COLLECTION ---
+    const questionText = document.getElementById('en-question').value;
+    const type = questionTypeSelect.value;
+    const isRequired = document.querySelector('input[name="is_required"]').checked;
+    
+    // Fail Response Logic
+    const failResponseValue = document.querySelector('input[name="fail_response"]:checked').value;
+    const failResponseBool = (failResponseValue === "Yes");
 
+    let optionsArray = [];
+    let correctAnswerText = null;
 
+    // --- B. OPTIONS HANDLING ---
+    if (type !== 'Data') {
+        const optionRows = document.querySelectorAll('.option-row');
 
+        optionRows.forEach(row => {
+            // FIX: '.option-text' ki jagah hum 'input[type="text"]' use kar rahy hain
+            // Ta ke wo apki HTML wali input ko bhi pakar le
+            const textInput = row.querySelector('input[type="text"]'); 
+            const radioInput = row.querySelector('input[type="radio"]');
 
+            if (textInput && textInput.value.trim() !== "") {
+                const val = textInput.value.trim();
+                optionsArray.push(val); 
+                
+                if (radioInput.checked) {
+                    correctAnswerText = val;
+                }
+            }
+        });
 
-
-
-
-
-
-
-
-
-
-
-  // Get questions from localStorage
-  const questions = JSON.parse(localStorage.getItem('surveyQuestions')) || [];
-  const form = document.getElementById('surveyForm');
-
-  // Display questions dynamically
-  questions.forEach((q, index) => {
-    const div = document.createElement('div');
-    div.classList.add('question');
-
-    let html = `<p>${index+1}. ${q.title}</p>`;
-
-    if(q.type.toLowerCase() === 'multiple choice') {
-      html += `
-        <div class="form-check"><input type="checkbox" class="form-check-input" id="q${index}a"><label class="form-check-label">${q.options.a}</label></div>
-        <div class="form-check"><input type="checkbox" class="form-check-input" id="q${index}b"><label class="form-check-label">${q.options.b}</label></div>
-        <div class="form-check"><input type="checkbox" class="form-check-input" id="q${index}c"><label class="form-check-label">${q.options.c}</label></div>
-        <div class="form-check"><input type="checkbox" class="form-check-input" id="q${index}d"><label class="form-check-label">${q.options.d}</label></div>
-      `;
-    } else if(q.type.toLowerCase() === 'true / false') {
-      html += `
-        <div class="form-check"><input type="radio" class="form-check-input" name="q${index}" value="True"><label class="form-check-label">True</label></div>
-        <div class="form-check"><input type="radio" class="form-check-input" name="q${index}" value="False"><label class="form-check-label">False</label></div>
-      `;
-    } else if(q.type.toLowerCase() === 'data (no correct answer)') {
-      html += `<input type="text" class="form-control" placeholder="Enter your answer">`;
+        // Validation
+        if (optionsArray.length === 0) {
+            alert("Please add at least one option!");
+            return;
+        }
+        if (!correctAnswerText) {
+            alert("Please select the Correct Answer (Radio button)!");
+            return;
+        }
     }
 
-    html += `<textarea class="form-control mt-2" placeholder="Comment (optional)"></textarea>`;
-    div.innerHTML = html;
-    form.appendChild(div);
-  });
+    // --- C. SEND TO SUPABASE ---
+    try {
+        const { data, error } = await supaBase
+            .from('Questions') // Make sure Table Name sahi ho (Capital Q)
+            .insert({
+                ques_en: questionText,
+                type: type,
+                options_json: optionsArray,
+                correct_answer_value: correctAnswerText,
+                fail_response_is_yes: failResponseBool,
+                is_required: isRequired
+            });
 
-  // Submit survey
-  document.getElementById('submitBtn').addEventListener('click', () => {
-    alert('Survey submitted successfully!');
-    // Here you can also save user responses to localStorage or Supabase
-  });
+        if (error) throw error;
+
+        // --- D. SUCCESS ---
+        alert("Question Saved Successfully!");
+        questionForm.reset();
+        
+        // Reset Options UI
+        optionsList.innerHTML = `
+             <div class="input-group mb-2 option-row">
+                <div class="input-group-text">
+                    <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
+                </div>
+                <input type="text" class="form-control" placeholder="Option 1" required>
+                <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
+            </div>
+        `;
+        
+        if (type === 'Data') {
+            optionsSection.style.display = 'block'; 
+        }
+
+    } catch (err) {
+        console.error("Supabase Error:", err);
+        alert("Error saving: " + err.message);
+    }
+});
