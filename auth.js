@@ -475,7 +475,7 @@ lBtn && lBtn.addEventListener("click", login);
             padding: "20px",
            
         }).then(() => {
-            location.href = "/Authentication/login.html";
+            location.href = "login.html";
         });
 
         }
@@ -518,14 +518,12 @@ lBtn && lBtn.addEventListener("click", login);
 
 // DASHBOARD FUNCTIONALITY
 
-// --- 1. DOM ELEMENTS ---
 const questionForm = document.getElementById('question-form');
 const questionTypeSelect = document.getElementById('question-type');
 const optionsSection = document.getElementById('options-section');
 const optionsList = document.getElementById('options-list');
 const addOptionBtn = document.getElementById('add-opt-btn');
 
-// --- 2. QUESTION TYPE CHANGE ---
 questionTypeSelect.addEventListener('change', (e) => {
     const type = e.target.value;
     if (type === 'Data') {
@@ -535,12 +533,10 @@ questionTypeSelect.addEventListener('change', (e) => {
     }
 });
 
-// --- 3. ADD OPTION FUNCTION ---
 addOptionBtn.addEventListener('click', () => {
     const newRow = document.createElement('div');
     newRow.className = 'input-group mb-2 option-row';
     
-    // CHANGE: Neche input se 'required' hata diya hai
     newRow.innerHTML = `
         <div class="input-group-text">
             <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
@@ -550,10 +546,6 @@ addOptionBtn.addEventListener('click', () => {
     optionsList.appendChild(newRow);
 });
 
-// ... (Beech ka code same rahega) ...
-
-// --- Form Reset Logic (Submit k end mein) ---
-// Yahan bhi 'required' hata den
 optionsList.innerHTML = `
         <div class="input-group mb-2 option-row">
         <div class="input-group-text">
@@ -563,7 +555,6 @@ optionsList.innerHTML = `
     </div>
 `;
 
-// --- 4. REMOVE OPTION ---
 optionsList.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-option-btn')) {
         const row = e.target.closest('.option-row');
@@ -575,29 +566,23 @@ optionsList.addEventListener('click', (e) => {
     }
 });
 
-// --- 5. FORM SUBMISSION (ERROR FIXED HERE) ---
 questionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // --- A. DATA COLLECTION ---
     const questionText = document.getElementById('en-question').value;
     const type = questionTypeSelect.value;
     const isRequired = document.querySelector('input[name="is_required"]').checked;
-    
-    // Fail Response Logic
+
     const failResponseValue = document.querySelector('input[name="fail_response"]:checked').value;
     const failResponseBool = (failResponseValue === "Yes");
 
     let optionsArray = [];
     let correctAnswerText = null;
 
-    // --- B. OPTIONS HANDLING ---
     if (type !== 'Data') {
         const optionRows = document.querySelectorAll('.option-row');
 
         optionRows.forEach(row => {
-            // FIX: '.option-text' ki jagah hum 'input[type="text"]' use kar rahy hain
-            // Ta ke wo apki HTML wali input ko bhi pakar le
             const textInput = row.querySelector('input[type="text"]'); 
             const radioInput = row.querySelector('input[type="radio"]');
 
@@ -611,7 +596,6 @@ questionForm.addEventListener('submit', async (e) => {
             }
         });
 
-        // Validation
         if (optionsArray.length === 0) {
             alert("Please add at least one option!");
             return;
@@ -622,10 +606,9 @@ questionForm.addEventListener('submit', async (e) => {
         }
     }
 
-    // --- C. SEND TO SUPABASE ---
     try {
         const { data, error } = await supaBase
-            .from('Questions') // Make sure Table Name sahi ho (Capital Q)
+            .from('Questions')
             .insert({
                 ques_en: questionText,
                 type: type,
@@ -637,11 +620,9 @@ questionForm.addEventListener('submit', async (e) => {
 
         if (error) throw error;
 
-        // --- D. SUCCESS ---
         alert("Question Saved Successfully!");
         questionForm.reset();
         
-        // Reset Options UI
         optionsList.innerHTML = `
              <div class="input-group mb-2 option-row">
                 <div class="input-group-text">
