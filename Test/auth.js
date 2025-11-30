@@ -624,7 +624,6 @@ function deleteQuestion(id) {
 
 
 
-
   // Get questions from localStorage
   const questions = JSON.parse(localStorage.getItem('surveyQuestions')) || [];
   const form = document.getElementById('surveyForm');
