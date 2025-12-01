@@ -9,8 +9,17 @@
 
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #001f3f;
         }
+
+        ::-webkit-scrollbar {
+            background-color: #ffffff;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #003871ed;
+        }
+
 
         .survey-creation-container {
             max-width: 800px;
@@ -18,8 +27,10 @@
         }
 
         .card-header {
-            background-color: #007bff !important;
+            background-color: #003469 !important;
             border-radius: 0.375rem 0.375rem 0 0 !important;
+            display: flex;
+            justify-content: space-evenly;
         }
 
         #options-section {
@@ -54,8 +65,29 @@
         }
 
         .form-check-input:checked {
-            background-color: #28a745;
-            border-color: #28a745;
+            background-color: rgba(0, 123, 255, 0.25);
+            border-color: rgba(0, 123, 255, 0.25);
+        }
+
+        .btn-success {
+            background-color: #003469 !important;
+            border: none;
+        }
+
+        .btn-info {
+            background-color: #003469 !important;
+            border: none;
+        }
+
+        .card {
+            box-shadow: #ffffff 2px 7px 30px !important;
+            transition: transform 0.3s ease;
+            /* smooth animation */
+        }
+
+        .card:hover {
+            transform: scale(1.01);
+            /* halka smooth zoom */
         }
     </style>
 </head>

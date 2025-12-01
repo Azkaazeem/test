@@ -8,20 +8,49 @@
     <style>
         /* Custom Styles for visual appeal */
         body {
-            background-color: #f8f9fa;
+            background-color: #001f3f;
         }
+
+        ::-webkit-scrollbar {
+            background-color: #ffffff;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #003871ed;
+         }
+
         .survey-card {
             max-width: 850px;
             margin: auto;
         }
         .question-item {
-            border-left: 5px solid #007bff; /* Blue accent bar */
+            border-left: 5px solid #000912; /* Blue accent bar */
             padding-left: 15px;
             background-color: #fff;
         }
         #timer-display {
             font-size: 1.25rem;
             color: #dc3545; /* Red color for urgency */
+        }
+
+        .card-header {
+            background-color: #003469 !important;
+        }
+
+        .btn-success {
+            background-color: #003469 !important;
+            border: none;
+        }
+
+        .card {
+            box-shadow: #ffffff 2px 7px 30px !important;
+            transition: transform 0.3s ease;
+            /* smooth animation */
+        }
+
+        .card:hover {
+            transform: scale(1.01);
+            /* halka smooth zoom */
         }
     </style>
 </head>
@@ -38,7 +67,7 @@
             </div>
         </div>
         
-        <div class="card-body p-4">
+         <div class="card-body p-4">
             <form id="question-answering-form">
                 
                 <div id="questions-container" class="mb-5">

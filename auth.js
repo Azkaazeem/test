@@ -524,6 +524,23 @@ const optionsSection = document.getElementById('options-section');
 const optionsList = document.getElementById('options-list');
 const addOptionBtn = document.getElementById('add-opt-btn');
 
+let time = 600;
+
+const countdown = setInterval(() => {
+  let m = Math.floor(time / 60);
+  let s = time % 60;
+  s = s < 10 ? "0" + s : s;
+
+  document.getElementById("timer-display").innerText = `Time Left: ${m}:${s}`;
+
+  if (time === 0) {
+    clearInterval(countdown);
+    window.location.href = "signup.html";
+  }
+
+  time--;
+}, 1000);
+
 questionTypeSelect.addEventListener('change', (e) => {
     const type = e.target.value;
     if (type === 'Data') {
