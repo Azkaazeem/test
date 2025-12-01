@@ -8,3 +8,4 @@
     const supaBase = createClient (supaKey , supaUrl);
 
     export default supaBase
+

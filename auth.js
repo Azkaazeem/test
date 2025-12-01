@@ -452,7 +452,7 @@ lBtn && lBtn.addEventListener("click", login);
 
 
 
-// LOGOUT FUNCTIONALITY
+// LOGOUT FUNCTIONALITY 
 
 
  let logoutBtn = document.getElementById("logout-btn")
