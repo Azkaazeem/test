@@ -517,72 +517,115 @@ lBtn && lBtn.addEventListener("click", login);
 
 
 // DASHBOARD FUNCTIONALITY
-
 const questionForm = document.getElementById('question-form');
 const questionTypeSelect = document.getElementById('question-type');
 const optionsSection = document.getElementById('options-section');
 const optionsList = document.getElementById('options-list');
 const addOptionBtn = document.getElementById('add-opt-btn');
 
+
+// ---------------------------
+// 1. Timer Start Only on User Activity
+// ---------------------------
 let time = 600;
+let timerStarted = false;
 
-const countdown = setInterval(() => {
-  let m = Math.floor(time / 60);
-  let s = time % 60;
-  s = s < 10 ? "0" + s : s;
+function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
 
-  document.getElementById("timer-display").innerText = `Time Left: ${m}:${s}`;
+    const countdown = setInterval(() => {
+        let m = Math.floor(time / 60);
+        let s = time % 60;
+        s = s < 10 ? "0" + s : s;
 
-  if (time === 0) {
-    clearInterval(countdown);
-    window.location.href = "signup.html";
-  }
+        document.getElementById("timer-display").innerText = `Time Left: ${m}:${s}`;
 
-  time--;
-}, 1000);
+        if (time === 0) {
+            clearInterval(countdown);
+            window.location.href = "signup.html";
+        }
 
+        time--;
+    }, 1000);
+}
+
+document.addEventListener("click", startTimer);
+document.addEventListener("scroll", startTimer);
+
+
+// ---------------------------
+// Option Functionality
+// ---------------------------
 questionTypeSelect.addEventListener('change', (e) => {
     const type = e.target.value;
+
     if (type === 'Data') {
+        optionsList.innerHTML = "";  
         optionsSection.style.display = 'none';
-    } else {
+    } 
+    else {
         optionsSection.style.display = 'block';
-    }
-});
 
-addOptionBtn.addEventListener('click', () => {
-    const newRow = document.createElement('div');
-    newRow.className = 'input-group mb-2 option-row';
-    
-    newRow.innerHTML = `
-        <div class="input-group-text">
-            <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
-        </div>
-        <input type="text" class="form-control" placeholder="New Option"> <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
-    `;
-    optionsList.appendChild(newRow);
-});
-
-optionsList.innerHTML = `
-        <div class="input-group mb-2 option-row">
-        <div class="input-group-text">
-            <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
-        </div>
-        <input type="text" class="form-control" placeholder="Option 1"> <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
-    </div>
-`;
-
-optionsList.addEventListener('click', (e) => {
-    if (e.target.classList.contains('remove-option-btn')) {
-        const row = e.target.closest('.option-row');
-        if (optionsList.children.length > 1) {
-            row.remove();
-        } else {
-            alert("At least one option is required!");
+        if (optionsList.children.length === 0) {
+            addNewOption("Option 1");
         }
     }
 });
 
+function addNewOption(placeholderText) {
+    const newRow = document.createElement('div');
+    newRow.className = 'input-group mb-2 option-row';
+
+    newRow.innerHTML = `
+        <div class="input-group-text">
+            <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
+        </div>
+        <input type="text" class="form-control option-input" placeholder="${placeholderText}">
+        <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
+    `;
+
+    optionsList.appendChild(newRow);
+}
+
+addOptionBtn.addEventListener('click', () => addNewOption("New Option"));
+
+
+// ---------------------------
+// Delete Option
+// ---------------------------
+optionsList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-option-btn')) {
+        const row = e.target.closest('.option-row');
+
+        if (optionsList.children.length > 1) {
+            row.remove();
+        } else {
+            showToast("At least one option is required!", "red");
+        }
+    }
+});
+
+
+// ---------------------------
+// 2. Select Correct Answer → Highlight Green
+// ---------------------------
+optionsList.addEventListener("change", (e) => {
+    if (e.target.classList.contains("correct-answer-radio")) {
+        document.querySelectorAll(".option-input").forEach(inp => {
+            inp.style.background = "white";
+        });
+
+        const row = e.target.closest(".option-row");
+        const input = row.querySelector(".option-input");
+        input.style.background = "#d4ffd4";
+    }
+});
+
+
+// ---------------------------
+// Form Submit
+// ---------------------------
 questionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -599,30 +642,39 @@ questionForm.addEventListener('submit', async (e) => {
     if (type !== 'Data') {
         const optionRows = document.querySelectorAll('.option-row');
 
+        let emptyFound = false;
+
         optionRows.forEach(row => {
-            const textInput = row.querySelector('input[type="text"]'); 
+            const textInput = row.querySelector('.option-input');
             const radioInput = row.querySelector('input[type="radio"]');
 
-            if (textInput && textInput.value.trim() !== "") {
-                const val = textInput.value.trim();
-                optionsArray.push(val); 
-                
-                if (radioInput.checked) {
-                    correctAnswerText = val;
-                }
+            if (textInput.value.trim() === "") {
+                textInput.style.border = "2px solid red";
+                emptyFound = true;
+            } else {
+                textInput.style.border = "1px solid #ced4da";
+            }
+
+            if (textInput.value.trim() !== "") {
+                optionsArray.push(textInput.value.trim());
+                if (radioInput.checked) correctAnswerText = textInput.value.trim();
             }
         });
 
-        if (optionsArray.length === 0) {
-            alert("Please add at least one option!");
+        if (emptyFound) {
+            showToast("Please fill all option fields!", "red");
             return;
         }
+
         if (!correctAnswerText) {
-            alert("Please select the Correct Answer (Radio button)!");
+            showToast("Please select the Correct Answer!", "red");
             return;
         }
     }
 
+    // ---------------------------
+    // SAVE TO SUPABASE
+    // ---------------------------
     try {
         const { data, error } = await supaBase
             .from('Questions')
@@ -637,25 +689,42 @@ questionForm.addEventListener('submit', async (e) => {
 
         if (error) throw error;
 
-        alert("Question Saved Successfully!");
+        showToast("Question Saved Successfully!", "green");
+
         questionForm.reset();
-        
-        optionsList.innerHTML = `
-             <div class="input-group mb-2 option-row">
-                <div class="input-group-text">
-                    <input class="form-check-input mt-0 correct-answer-radio" type="radio" name="correct_answer">
-                </div>
-                <input type="text" class="form-control" placeholder="Option 1" required>
-                <button type="button" class="btn btn-outline-danger remove-option-btn">Delete</button>
-            </div>
-        `;
-        
+        optionsList.innerHTML = "";
+        addNewOption("Option 1");
+
         if (type === 'Data') {
-            optionsSection.style.display = 'block'; 
+            optionsSection.style.display = 'none';
         }
 
     } catch (err) {
         console.error("Supabase Error:", err);
-        alert("Error saving: " + err.message);
+        showToast("Error saving: " + err.message, "red");
     }
 });
+
+
+// ---------------------------
+// 5. Custom Toast Function
+// ---------------------------
+function showToast(msg, color) {
+    let box = document.createElement("div");
+    box.innerText = msg;
+
+    box.style.position = "fixed";
+    box.style.bottom = "20px";
+    box.style.right = "20px";
+    box.style.padding = "12px 18px";
+    box.style.background = color;
+    box.style.color = "white";
+    box.style.borderRadius = "6px";
+    box.style.zIndex = "99999";
+    box.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+    box.style.fontSize = "15px";
+
+    document.body.appendChild(box);
+
+    setTimeout(() => box.remove(), 2000);
+}
